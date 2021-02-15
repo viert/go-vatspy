@@ -4,7 +4,7 @@ A golang library to fetch, parse and work with VATSpy data like countries, airpo
 
 ### Example
 
-```(golang)
+```go
 package main
 
 import (
