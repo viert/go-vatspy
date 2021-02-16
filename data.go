@@ -18,7 +18,7 @@ func newData() *Data {
 // VATSpy data public URLs
 const (
 	VATSpyDataPublicURL    = "https://github.com/vatsimnetwork/vatspy-data-project/raw/master/VATSpy.dat"
-	FIRBoundariesPublicURL = "https://github.com/vatsimnetwork/vatspy-data-project/raw/master/FIRBoundaries.data"
+	FIRBoundariesPublicURL = "https://github.com/vatsimnetwork/vatspy-data-project/raw/master/FIRBoundaries.dat"
 )
 
 // FindCountriesByName searches for Country objects with a given name
