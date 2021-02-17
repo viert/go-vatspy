@@ -256,6 +256,7 @@ func makeIndexes(data *Data) {
 	for i := range data.FIRs {
 		fir := &data.FIRs[i]
 		data.firIDIdx[fir.ID] = fir
+		data.firPrefixIdx[fir.Prefix] = fir
 	}
 
 	for i := range data.UIRs {

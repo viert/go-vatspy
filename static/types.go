@@ -62,6 +62,7 @@ type (
 		airportICAOIdx   map[string]*Airport
 		airportIATAIdx   map[string]*Airport
 		firIDIdx         map[string]*FIR
+		firPrefixIdx     map[string]*FIR
 		uirIDIdx         map[string]*UIR
 	}
 )

@@ -1,9 +1,11 @@
 package vatspy
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
+	"github.com/viert/go-vatspy/dynamic"
 	"github.com/viert/go-vatspy/static"
 )
 
@@ -12,6 +14,7 @@ type Provider struct {
 	lock          sync.RWMutex
 	stop          chan bool
 	staticData    *static.Data
+	dynamicData   *dynamic.Data
 	subscriptions []*subscription
 }
 
@@ -35,16 +38,19 @@ func (p *Provider) Subscribe(chanSize int) <-chan Update {
 }
 
 func (p *Provider) fetchDynamic() error {
-	// var err error
+	var err error
+	if p.staticData == nil {
+		return fmt.Errorf("static data is not available yet")
+	}
 
-	// if p.staticData == nil {
-	// 	return fmt.Errorf("static data is not available yet")
-	// }
+	p.dynamicData, err = dynamic.Fetch(dynamic.VatSimJSON3URL)
+	if err != nil {
+		return err
+	}
 
-	// p.dData, err = dynamic.Fetch(dynamic.VatSimJSON3URL)
-	// if err != nil {
-	// 	return err
-	// }
+	for _, sub := range p.subscriptions {
+		sub.processDynamic(p.dynamicData, p.staticData)
+	}
 
 	return nil
 }
