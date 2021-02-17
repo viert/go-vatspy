@@ -1,4 +1,4 @@
-package vatspy
+package static
 
 type (
 	// Point is a map point

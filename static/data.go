@@ -1,4 +1,4 @@
-package vatspy
+package static
 
 func newData() *Data {
 	return &Data{

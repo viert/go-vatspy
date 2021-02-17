@@ -1,4 +1,4 @@
-package vatspy
+package static
 
 import (
 	"bufio"
