@@ -35,9 +35,13 @@ type Update struct {
 	Object interface{}
 }
 
+// UpdateFilter is a callback for filtering out particular objects
+type UpdateFilter func(interface{}) bool
+
 type subscription struct {
 	state   *state
 	updates chan Update
+	filters []UpdateFilter
 }
 
 func (s *subscription) processStatic(data *static.Data) {
@@ -224,8 +228,17 @@ func (s *subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 	}
 }
 
-// nonblocking send, drops the message if the channel buffer is full
 func (s *subscription) sendUpdate(update Update) bool {
+	// apply filters before sending anything
+	for _, filter := range s.filters {
+		// if a filter returns false, do not send anything,
+		// but pretend we just did
+		if !filter(update.Object) {
+			return true
+		}
+	}
+
+	// nonblocking send, drops the message if the channel buffer is full
 	select {
 	case s.updates <- update:
 		return true

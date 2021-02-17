@@ -28,10 +28,11 @@ func New(staticUpdatePeriod time.Duration, dynamicUpdatePeriod time.Duration) (*
 }
 
 // Subscribe generates a new update channel
-func (p *Provider) Subscribe(chanSize int) <-chan Update {
+func (p *Provider) Subscribe(chanSize int, filters ...UpdateFilter) <-chan Update {
 	sub := &subscription{
 		state:   newStateData(),
 		updates: make(chan Update, chanSize),
+		filters: filters,
 	}
 	p.subscriptions = append(p.subscriptions, sub)
 	return sub.updates
