@@ -17,6 +17,7 @@ func Fetch(dataURL string) (*Data, error) {
 		return nil, err
 	}
 
+	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err

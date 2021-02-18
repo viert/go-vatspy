@@ -33,6 +33,8 @@ func Fetch(dataURL string, boundariesURL string) (*Data, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
+
 	rawBoundaries, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err

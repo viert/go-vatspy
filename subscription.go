@@ -38,13 +38,22 @@ type Update struct {
 // UpdateFilter is a callback for filtering out particular objects
 type UpdateFilter func(interface{}) bool
 
-type subscription struct {
+// Subscription is a subscriber descriptor
+// Use Updates() to get updates channel
+// Use Stop() to unsubscribe
+type Subscription struct {
+	subID   uint64
 	state   *state
 	updates chan Update
 	filters []UpdateFilter
 }
 
-func (s *subscription) processStatic(data *static.Data) {
+func (s *Subscription) processStatic(data *static.Data) {
+	// in case channel is already closed
+	if s.updates == nil {
+		return
+	}
+
 	// process countries
 	for _, vsCountry := range data.Countries {
 		country := Country{
@@ -103,7 +112,12 @@ func (s *subscription) processStatic(data *static.Data) {
 	}
 }
 
-func (s *subscription) processDynamic(dynamicData *dynamic.Data, staticData *static.Data) {
+func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *static.Data) {
+	// in case channel is already closed
+	if s.updates == nil {
+		return
+	}
+
 	// process controllers
 	for _, vsController := range dynamicData.Controllers {
 		if vsController.Facility >= 2 && vsController.Facility <= 5 {
@@ -228,7 +242,8 @@ func (s *subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 	}
 }
 
-func (s *subscription) sendUpdate(update Update) bool {
+func (s *Subscription) sendUpdate(update Update) bool {
+
 	// apply filters before sending anything
 	for _, filter := range s.filters {
 		// if a filter returns false, do not send anything,
@@ -245,4 +260,9 @@ func (s *subscription) sendUpdate(update Update) bool {
 	default:
 		return false
 	}
+}
+
+// Updates returns a readonly updates channel
+func (s *Subscription) Updates() <-chan Update {
+	return s.updates
 }
