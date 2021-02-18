@@ -71,7 +71,6 @@ func (c *Radar) equals(other *Radar) bool {
 		c.Server == other.Server &&
 		c.VisualRange == other.VisualRange &&
 		c.AtisCode == other.AtisCode &&
-		c.LastUpdated == other.LastUpdated &&
 		c.LogonTime == other.LogonTime {
 		if len(c.TextAtis) == len(other.TextAtis) {
 			for i := 0; i < len(c.TextAtis); i++ {
@@ -113,7 +112,6 @@ func (c *AirportController) equals(other *AirportController) bool {
 		c.Server == other.Server &&
 		c.VisualRange == other.VisualRange &&
 		c.AtisCode == other.AtisCode &&
-		c.LastUpdated == other.LastUpdated &&
 		c.LogonTime == other.LogonTime {
 		if len(c.TextAtis) == len(other.TextAtis) {
 			for i := 0; i < len(c.TextAtis); i++ {

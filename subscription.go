@@ -1,9 +1,9 @@
 package vatspy
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/op/go-logging"
 	"github.com/viert/go-vatspy/dynamic"
 	"github.com/viert/go-vatspy/static"
 )
@@ -24,8 +24,8 @@ var (
 		ObjectModify: "modify",
 		ObjectRemove: "remove",
 	}
+	log = logging.MustGetLogger("vatspy")
 )
-
 
 func (ut UpdateType) String() string {
 	return updateTypeNames[ut]
@@ -127,10 +127,14 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 				Controller: vsController,
 			}
 
-			prefix := strings.Split(controller.Callsign, "_")[0]
+			tokens := strings.Split(controller.Callsign, "_")
+			prefix := tokens[0]
 			vsAirport := staticData.FindAirport(prefix)
 			if vsAirport == nil {
-				fmt.Printf("can't find airport named %s, the controller is %v\n", prefix, controller)
+				postfix := tokens[len(tokens)-1]
+				if postfix != "OBS" && postfix != "SUP" {
+					log.Debugf("can't find airport named %s, the controller is %v", prefix, controller)
+				}
 				continue
 			}
 
@@ -187,10 +191,14 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 			}
 		} else if vsController.Facility == 6 {
 			// CTR
-			prefix := strings.Split(vsController.Callsign, "_")[0]
+			tokens := strings.Split(vsController.Callsign, "_")
+			prefix := tokens[0]
 			fir := staticData.FindFIR(prefix)
 			if fir == nil {
-				fmt.Printf("can't find FIR named %s, the controller is %v\n", prefix, vsController)
+				postfix := tokens[len(tokens)-1]
+				if postfix != "OBS" && postfix != "SUP" {
+					log.Debugf("can't find FIR named %s, the controller is %v", prefix, vsController)
+				}
 				continue
 			}
 			radar := Radar{
@@ -218,10 +226,14 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 			Controller: vsATIS,
 		}
 
-		prefix := strings.Split(atis.Callsign, "_")[0]
+		tokens := strings.Split(atis.Callsign, "_")
+		prefix := tokens[0]
 		vsAirport := staticData.FindAirport(prefix)
 		if vsAirport == nil {
-			fmt.Printf("can't find airport named %s, the controller is %v\n", prefix, atis)
+			postfix := tokens[len(tokens)-1]
+			if postfix != "OBS" && postfix != "SUP" {
+				log.Debugf("can't find airport named %s, the controller is %v", prefix, atis)
+			}
 			continue
 		}
 		if airport, found := s.state.airports[vsAirport.ICAO]; found {
