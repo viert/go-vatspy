@@ -8,22 +8,24 @@ import (
 	"github.com/viert/go-vatspy/static"
 )
 
+// UpdateType is a update type enum
+type UpdateType int
+
+// UpdateType enum definition
 const (
-	objectAdd UpdateType = iota
-	objectModify
-	objectRemove
+	ObjectAdd UpdateType = iota
+	ObjectModify
+	ObjectRemove
 )
 
 var (
 	updateTypeNames = map[UpdateType]string{
-		objectAdd:    "add",
-		objectModify: "modify",
-		objectRemove: "remove",
+		ObjectAdd:    "add",
+		ObjectModify: "modify",
+		ObjectRemove: "remove",
 	}
 )
 
-// UpdateType is a update type enum
-type UpdateType int
 
 func (ut UpdateType) String() string {
 	return updateTypeNames[ut]
@@ -62,11 +64,11 @@ func (s *Subscription) processStatic(data *static.Data) {
 
 		if existing, found := s.state.countries[country.Prefix]; found {
 			if !country.equals(&existing) {
-				if s.sendUpdate(Update{objectModify, &country}) {
+				if s.sendUpdate(Update{ObjectModify, &country}) {
 					s.state.countries[country.Prefix] = country
 				}
 			} else {
-				if s.sendUpdate(Update{objectAdd, &country}) {
+				if s.sendUpdate(Update{ObjectAdd, &country}) {
 					s.state.countries[country.Prefix] = country
 				}
 			}
@@ -75,7 +77,7 @@ func (s *Subscription) processStatic(data *static.Data) {
 
 	for _, country := range s.state.countries {
 		if data.FindCountryByPrefix(country.Prefix) == nil {
-			if s.sendUpdate(Update{objectRemove, &country}) {
+			if s.sendUpdate(Update{ObjectRemove, &country}) {
 				delete(s.state.countries, country.Prefix)
 			}
 		}
@@ -93,19 +95,19 @@ func (s *Subscription) processStatic(data *static.Data) {
 			airport.Controllers.Ground = existing.Controllers.Ground
 			airport.Controllers.Tower = existing.Controllers.Tower
 			if !airport.equals(&existing) {
-				if s.sendUpdate(Update{objectModify, &airport}) {
+				if s.sendUpdate(Update{ObjectModify, &airport}) {
 					s.state.airports[airport.ICAO] = airport
 				}
 			}
 		} else {
-			if s.sendUpdate(Update{objectAdd, &airport}) {
+			if s.sendUpdate(Update{ObjectAdd, &airport}) {
 				s.state.airports[airport.ICAO] = airport
 			}
 		}
 	}
 	for _, airport := range s.state.airports {
 		if data.FindAirportByICAO(airport.ICAO) == nil {
-			if s.sendUpdate(Update{objectRemove, &airport}) {
+			if s.sendUpdate(Update{ObjectRemove, &airport}) {
 				delete(s.state.airports, airport.ICAO)
 			}
 		}
@@ -162,7 +164,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 						airportModified = true
 					}
 				}
-				if airportModified && s.sendUpdate(Update{objectModify, &airport}) {
+				if airportModified && s.sendUpdate(Update{ObjectModify, &airport}) {
 					s.state.airports[airport.ICAO] = airport
 				}
 			} else {
@@ -179,7 +181,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 				case 5:
 					airport.Controllers.Approach = &controller
 				}
-				if s.sendUpdate(Update{objectModify, &airport}) {
+				if s.sendUpdate(Update{ObjectModify, &airport}) {
 					s.state.airports[airport.ICAO] = airport
 				}
 			}
@@ -198,12 +200,12 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 
 			if existing, found := s.state.radars[radar.Callsign]; found {
 				if !existing.equals(&radar) {
-					if s.sendUpdate(Update{objectModify, &radar}) {
+					if s.sendUpdate(Update{ObjectModify, &radar}) {
 						s.state.radars[radar.Callsign] = radar
 					}
 				}
 			} else {
-				if s.sendUpdate(Update{objectAdd, &radar}) {
+				if s.sendUpdate(Update{ObjectAdd, &radar}) {
 					s.state.radars[radar.Callsign] = radar
 				}
 			}
@@ -226,7 +228,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 			existing := airport.Controllers.ATIS
 			if !existing.equals(&atis) {
 				airport.Controllers.ATIS = &atis
-				if s.sendUpdate(Update{objectModify, &airport}) {
+				if s.sendUpdate(Update{ObjectModify, &airport}) {
 					s.state.airports[vsAirport.ICAO] = airport
 				}
 			}
@@ -235,7 +237,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 				Airport: *vsAirport,
 			}
 			airport.Controllers.ATIS = &atis
-			if s.sendUpdate(Update{objectModify, &airport}) {
+			if s.sendUpdate(Update{ObjectModify, &airport}) {
 				s.state.airports[airport.ICAO] = airport
 			}
 		}
