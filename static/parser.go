@@ -97,7 +97,7 @@ func parseData(data []byte, boundaries map[string]Boundaries) (*Data, error) {
 				Position: Point{Lat: lat, Lng: lng},
 				IATA:     tokens[4],
 				FIRID:    tokens[5],
-				Pseudo:   tokens[6] == "1",
+				IsPseudo: tokens[6] == "1",
 			}
 			results.Airports = append(results.Airports, airport)
 		case stateReadFIRs:
@@ -199,11 +199,11 @@ func parseBoundaries(data []byte) (map[string]Boundaries, error) {
 			}
 
 			current = Boundaries{
-				Oceanic:   tokens[1] == "1",
-				Extension: tokens[2] == "1",
-				Min:       Point{Lat: minLat, Lng: minLng},
-				Max:       Point{Lat: maxLat, Lng: maxLng},
-				Center:    Point{Lat: cntLat, Lng: cntLng},
+				IsOceanic:   tokens[1] == "1",
+				IsExtension: tokens[2] == "1",
+				Min:         Point{Lat: minLat, Lng: minLng},
+				Max:         Point{Lat: maxLat, Lng: maxLng},
+				Center:      Point{Lat: cntLat, Lng: cntLng},
 			}
 			points = make([]Point, pointsLeft)
 			pointIdx = 0

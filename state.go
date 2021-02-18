@@ -9,7 +9,7 @@ type (
 	// Radar is a VatSim controller controlling a region
 	Radar struct {
 		dynamic.Controller
-		Boundaries static.Boundaries
+		Boundaries static.Boundaries `json:"boundaries"`
 	}
 
 	// AirportController is a VatSim controller controlling an airport facility
@@ -19,17 +19,17 @@ type (
 
 	// AirportControllerSet is a set of VatSim controllers attached to an airport
 	AirportControllerSet struct {
-		Approach *AirportController
-		Delivery *AirportController
-		Ground   *AirportController
-		Tower    *AirportController
-		ATIS     *AirportController
+		Approach *AirportController `json:"APP"`
+		Delivery *AirportController `json:"DEL"`
+		Ground   *AirportController `json:"GND"`
+		Tower    *AirportController `json:"TWR"`
+		ATIS     *AirportController `json:"ATIS"`
 	}
 
 	// Airport is a VatSim airport
 	Airport struct {
 		static.Airport
-		Controllers AirportControllerSet
+		Controllers AirportControllerSet `json:"controllers"`
 	}
 
 	// Country is a VatSim country
@@ -154,7 +154,7 @@ func (a *Airport) equals(other *Airport) bool {
 		a.IATA == other.IATA &&
 		a.Name == other.Name &&
 		a.FIRID == other.FIRID &&
-		a.Pseudo == other.Pseudo &&
+		a.IsPseudo == other.IsPseudo &&
 		a.Position.Lat == other.Position.Lat &&
 		a.Position.Lng == other.Position.Lng &&
 		a.Controllers == other.Controllers
