@@ -1,4 +1,4 @@
-package vatspy
+package static
 
 func newData() *Data {
 	return &Data{
@@ -11,6 +11,7 @@ func newData() *Data {
 		airportICAOIdx:   make(map[string]*Airport),
 		airportIATAIdx:   make(map[string]*Airport),
 		firIDIdx:         make(map[string]*FIR),
+		firPrefixIdx:     make(map[string]*FIR),
 		uirIDIdx:         make(map[string]*UIR),
 	}
 }
@@ -55,7 +56,10 @@ func (d *Data) FindAirport(id string) *Airport {
 
 // FindFIR searches for a given FIR by its ID
 func (d *Data) FindFIR(id string) *FIR {
-	return d.firIDIdx[id]
+	if fir, found := d.firIDIdx[id]; found {
+		return fir
+	}
+	return d.firPrefixIdx[id]
 }
 
 // FindUIR searches for a given UIR by its ID

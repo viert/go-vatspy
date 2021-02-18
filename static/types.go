@@ -1,4 +1,4 @@
-package vatspy
+package static
 
 type (
 	// Point is a map point
@@ -62,6 +62,7 @@ type (
 		airportICAOIdx   map[string]*Airport
 		airportIATAIdx   map[string]*Airport
 		firIDIdx         map[string]*FIR
+		firPrefixIdx     map[string]*FIR
 		uirIDIdx         map[string]*UIR
 	}
 )
