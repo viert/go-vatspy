@@ -44,10 +44,11 @@ type UpdateFilter func(interface{}) bool
 // Use Updates() to get updates channel
 // Use Stop() to unsubscribe
 type Subscription struct {
-	subID   uint64
-	state   *state
-	updates chan Update
-	filters []UpdateFilter
+	subID          uint64
+	state          *state
+	updates        chan Update
+	controlledOnly bool
+	filters        []UpdateFilter
 }
 
 func (s *Subscription) processStatic(data *static.Data) {
@@ -95,16 +96,26 @@ func (s *Subscription) processStatic(data *static.Data) {
 			airport.Controllers.Ground = existing.Controllers.Ground
 			airport.Controllers.Tower = existing.Controllers.Tower
 			if !airport.equals(&existing) {
-				if s.sendUpdate(Update{ObjectModify, &airport}) {
-					s.state.airports[airport.ICAO] = airport
+				if airport.IsEmpty() && s.controlledOnly {
+					// This code should never run but just in case.
+					if s.sendUpdate(Update{ObjectRemove, &airport}) {
+						delete(s.state.airports, airport.ICAO)
+					}
+				} else {
+					if s.sendUpdate(Update{ObjectModify, &airport}) {
+						s.state.airports[airport.ICAO] = airport
+					}
 				}
 			}
 		} else {
-			if s.sendUpdate(Update{ObjectAdd, &airport}) {
-				s.state.airports[airport.ICAO] = airport
+			if !airport.IsEmpty() || !s.controlledOnly {
+				if s.sendUpdate(Update{ObjectAdd, &airport}) {
+					s.state.airports[airport.ICAO] = airport
+				}
 			}
 		}
 	}
+
 	for _, airport := range s.state.airports {
 		if data.FindAirportByICAO(airport.ICAO) == nil {
 			if s.sendUpdate(Update{ObjectRemove, &airport}) {
@@ -251,6 +262,64 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 			airport.Controllers.ATIS = &atis
 			if s.sendUpdate(Update{ObjectModify, &airport}) {
 				s.state.airports[airport.ICAO] = airport
+			}
+		}
+	}
+
+	// Removing controllers
+	for key, airport := range s.state.airports {
+		// a readonly copy to keep changed values
+		current := s.state.airports[key]
+
+		var ctrl *AirportController
+		ctrl = airport.Controllers.ATIS
+		if ctrl != nil {
+			if dct := dynamicData.FindController(ctrl.Callsign); dct == nil {
+				airport.Controllers.ATIS = nil
+			}
+		}
+		ctrl = airport.Controllers.Delivery
+		if ctrl != nil {
+			if dct := dynamicData.FindController(ctrl.Callsign); dct == nil {
+				airport.Controllers.Delivery = nil
+			}
+		}
+		ctrl = airport.Controllers.Ground
+		if ctrl != nil {
+			if dct := dynamicData.FindController(ctrl.Callsign); dct == nil {
+				airport.Controllers.Ground = nil
+			}
+		}
+		ctrl = airport.Controllers.Tower
+		if ctrl != nil {
+			if dct := dynamicData.FindController(ctrl.Callsign); dct == nil {
+				airport.Controllers.Tower = nil
+			}
+		}
+		ctrl = airport.Controllers.Approach
+		if ctrl != nil {
+			if dct := dynamicData.FindController(ctrl.Callsign); dct == nil {
+				airport.Controllers.Approach = nil
+			}
+		}
+
+		if !current.equals(&airport) {
+			if airport.IsEmpty() && s.controlledOnly {
+				if s.sendUpdate(Update{ObjectRemove, &current}) {
+					delete(s.state.airports, key)
+				}
+			} else {
+				if s.sendUpdate(Update{ObjectModify, &airport}) {
+					s.state.airports[key] = airport
+				}
+			}
+		}
+	}
+
+	for callsign, radar := range s.state.radars {
+		if ctrl := dynamicData.FindController(callsign); ctrl == nil {
+			if s.sendUpdate(Update{ObjectRemove, &radar}) {
+				delete(s.state.radars, callsign)
 			}
 		}
 	}

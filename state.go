@@ -164,6 +164,16 @@ func (a *Airport) IsEmpty() bool {
 	return c.ATIS == nil && c.Delivery == nil && c.Ground == nil && c.Tower == nil
 }
 
+func (a *Airport) listControllers() []*AirportController {
+	return []*AirportController{
+		a.Controllers.ATIS,
+		a.Controllers.Delivery,
+		a.Controllers.Ground,
+		a.Controllers.Tower,
+		a.Controllers.Approach,
+	}
+}
+
 func newStateData() *state {
 	return &state{
 		airports:  make(map[string]Airport),

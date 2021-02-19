@@ -31,13 +31,14 @@ func New(staticUpdatePeriod time.Duration, dynamicUpdatePeriod time.Duration) (*
 }
 
 // Subscribe generates a new update channel
-func (p *Provider) Subscribe(chanSize int, filters ...UpdateFilter) *Subscription {
+func (p *Provider) Subscribe(chanSize int, controlledOnly bool, filters ...UpdateFilter) *Subscription {
 	id := atomic.AddUint64(&p.autoinc, 1)
 	sub := &Subscription{
-		subID:   id,
-		state:   newStateData(),
-		updates: make(chan Update, chanSize),
-		filters: filters,
+		subID:          id,
+		state:          newStateData(),
+		updates:        make(chan Update, chanSize),
+		controlledOnly: controlledOnly,
+		filters:        filters,
 	}
 	p.lock.Lock()
 	defer p.lock.Unlock()
