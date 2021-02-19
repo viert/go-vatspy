@@ -216,7 +216,7 @@ func parseBoundaries(data []byte) (map[string]Boundaries, error) {
 			if err != nil {
 				return nil, fmt.Errorf(coordErrorTemplate, tokens[0], lineNum)
 			}
-			lng, err := strconv.ParseFloat(tokens[0], 64)
+			lng, err := strconv.ParseFloat(tokens[1], 64)
 			if err != nil {
 				return nil, fmt.Errorf(coordErrorTemplate, tokens[0], lineNum)
 			}
