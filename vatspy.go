@@ -21,12 +21,15 @@ type Provider struct {
 	autoinc       uint64
 }
 
+// ReadyCallback is a callback function called when static data is initially loaded
+type ReadyCallback func()
+
 // New creates a new Provider
-func New(staticUpdatePeriod time.Duration, dynamicUpdatePeriod time.Duration) (*Provider, error) {
+func New(staticUpdatePeriod time.Duration, dynamicUpdatePeriod time.Duration, staticReady ReadyCallback) (*Provider, error) {
 	p := new(Provider)
 	p.stop = make(chan *Subscription, 1024)
 	p.subscriptions = make(map[uint64]*Subscription)
-	go p.loop(staticUpdatePeriod, dynamicUpdatePeriod)
+	go p.loop(staticUpdatePeriod, dynamicUpdatePeriod, staticReady)
 	return p, nil
 }
 
@@ -98,11 +101,17 @@ func (p *Provider) fetchStatic() error {
 	return nil
 }
 
-func (p *Provider) loop(staticUpdatePeriod time.Duration, dynamicUpdatePeriod time.Duration) {
+func (p *Provider) loop(staticUpdatePeriod time.Duration, dynamicUpdatePeriod time.Duration, staticReady ReadyCallback) {
+	staticReadyCalled := false
+
 	st := time.NewTicker(staticUpdatePeriod)
 	dt := time.NewTicker(dynamicUpdatePeriod)
 
-	p.fetchStatic()
+	err := p.fetchStatic()
+	if err == nil && staticReady != nil {
+		staticReady()
+		staticReadyCalled = true
+	}
 	p.fetchDynamic()
 
 	for {
@@ -131,7 +140,11 @@ func (p *Provider) loop(staticUpdatePeriod time.Duration, dynamicUpdatePeriod ti
 			}
 
 		case <-st.C:
-			p.fetchStatic()
+			err := p.fetchStatic()
+			if !staticReadyCalled && staticReady != nil && err == nil {
+				staticReady()
+				staticReadyCalled = true
+			}
 		case <-dt.C:
 			p.fetchDynamic()
 		}
@@ -144,4 +157,14 @@ func (p *Provider) Stop() {
 		p.cleanup = true
 		p.stop <- nil
 	}
+}
+
+// GetStaticData returns current static data object
+func (p *Provider) GetStaticData() *static.Data {
+	return p.staticData
+}
+
+// GetDynamicData returns current dynamic data object
+func (p *Provider) GetDynamicData() *dynamic.Data {
+	return p.dynamicData
 }
