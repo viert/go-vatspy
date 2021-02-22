@@ -218,7 +218,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 				Boundaries: fir.Boundaries,
 			}
 
-			controlName := "Control"
+			controlName := "Centre"
 			countryPrefix := fir.ID[:2]
 			country := staticData.FindCountryByPrefix(countryPrefix)
 			if country != nil && country.ControlCustomName != "" {
