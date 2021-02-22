@@ -9,7 +9,8 @@ type (
 	// Radar is a VatSim controller controlling a region
 	Radar struct {
 		dynamic.Controller
-		Boundaries static.Boundaries `json:"boundaries"`
+		Boundaries        static.Boundaries `json:"boundaries"`
+		HumanReadableName string            `json:"human_readable_name"`
 	}
 
 	// AirportController is a VatSim controller controlling an airport facility

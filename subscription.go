@@ -1,6 +1,7 @@
 package vatspy
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/op/go-logging"
@@ -216,6 +217,14 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 				Controller: vsController,
 				Boundaries: fir.Boundaries,
 			}
+
+			controlName := "Control"
+			countryPrefix := fir.ID[:2]
+			country := staticData.FindCountryByPrefix(countryPrefix)
+			if country != nil && country.ControlCustomName != "" {
+				controlName = country.ControlCustomName
+			}
+			radar.HumanReadableName = fmt.Sprintf("%s %s", fir.Name, controlName)
 
 			if existing, found := s.state.radars[radar.Callsign]; found {
 				if !existing.equals(&radar) {
