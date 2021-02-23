@@ -205,17 +205,57 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 			// CTR
 			tokens := strings.Split(vsController.Callsign, "_")
 			prefix := tokens[0]
+			firs := make([]*FIR, 0)
+
 			fir := staticData.FindFIR(prefix)
-			if fir == nil {
-				postfix := tokens[len(tokens)-1]
-				if postfix != "OBS" && postfix != "SUP" {
+
+			if fir != nil {
+				firs = append(firs, &FIR{FIR: *fir})
+			} else {
+				uir := staticData.FindUIR(prefix)
+				if uir != nil {
+					for _, firID := range uir.FIRIDs {
+						fir = staticData.FindFIR(firID)
+						if fir != nil {
+							firs = append(firs, &FIR{FIR: *fir})
+						} else {
+							log.Debugf("can't find FIR %s provided by UIR %s", firID, uir.ID)
+						}
+					}
+				} else {
+					// silently catch special cases
+					postfix := tokens[len(tokens)-1]
+					if postfix == "OBS" || postfix == "SUP" {
+						continue
+					}
+
+					supervisorFound := false
+					for _, line := range vsController.TextAtis {
+						lowered := strings.ToLower(line)
+						if strings.Contains(lowered, "supervisor") {
+							supervisorFound = true
+							break
+						}
+					}
+
+					if supervisorFound {
+						continue
+					}
+
+					// no special cases found, log an error
 					log.Debugf("can't find FIR named %s, the controller is %v", prefix, vsController)
+					continue
 				}
+			}
+
+			if len(firs) == 0 {
+				log.Debugf("no FIRs or UIRs found by prefix %s for controller %v", prefix, vsController)
 				continue
 			}
+
 			radar := Radar{
 				Controller: vsController,
-				Boundaries: fir.Boundaries,
+				FIRs:       firs,
 			}
 
 			controlName := "Centre"
