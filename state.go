@@ -6,11 +6,16 @@ import (
 )
 
 type (
+	// FIR is a VatSim static FIR with helper methods
+	FIR struct {
+		static.FIR
+	}
+
 	// Radar is a VatSim controller controlling a region
 	Radar struct {
 		dynamic.Controller
-		Boundaries        static.Boundaries `json:"boundaries"`
-		HumanReadableName string            `json:"human_readable_name"`
+		FIRs              []*FIR `json:"firs"`
+		HumanReadableName string `json:"human_readable_name"`
 	}
 
 	// AirportController is a VatSim controller controlling an airport facility
@@ -55,6 +60,31 @@ func (c *Country) equals(other *Country) bool {
 	return c.Name == other.Name && c.Prefix == other.Prefix && c.ControlCustomName == other.ControlCustomName
 }
 
+func (c *FIR) equals(other *FIR) bool {
+	if c == nil {
+		return other == nil
+	}
+	if other == nil {
+		return false
+	}
+
+	if c.ID == other.ID &&
+		c.Prefix == other.Prefix &&
+		c.ParentID == other.ParentID &&
+		c.Name == other.Name {
+		if len(c.Boundaries.Points) == len(other.Boundaries.Points) {
+			for i := 0; i < len(c.Boundaries.Points); i++ {
+				if c.Boundaries.Points[i].Lat != other.Boundaries.Points[i].Lat ||
+					c.Boundaries.Points[i].Lng != other.Boundaries.Points[i].Lng {
+					return false
+				}
+			}
+			return true
+		}
+	}
+	return false
+}
+
 func (c *Radar) equals(other *Radar) bool {
 	if c == nil {
 		return other == nil
@@ -83,14 +113,13 @@ func (c *Radar) equals(other *Radar) bool {
 			return false
 		}
 
-		if len(c.Boundaries.Points) == len(other.Boundaries.Points) {
-			for i := 0; i < len(c.Boundaries.Points); i++ {
-				if c.Boundaries.Points[i].Lat != other.Boundaries.Points[i].Lat ||
-					c.Boundaries.Points[i].Lng != other.Boundaries.Points[i].Lng {
+		if len(c.FIRs) == len(other.FIRs) {
+			for i := 0; i < len(c.FIRs); i++ {
+				if !c.FIRs[i].equals(other.FIRs[i]) {
 					return false
 				}
+				return true
 			}
-			return true
 		}
 	}
 	return false
