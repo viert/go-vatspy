@@ -115,7 +115,12 @@ func parseData(data []byte, boundaries map[string]Boundaries) (*Data, error) {
 
 			if bnds, found := boundaries[fir.ID]; found {
 				fir.Boundaries = bnds
+			} else if bnds, found := boundaries[fir.Prefix]; found {
+				fir.Boundaries = bnds
+			} else if bnds, found := boundaries[fir.ParentID]; found {
+				fir.Boundaries = bnds
 			}
+
 			results.FIRs = append(results.FIRs, fir)
 
 		case stateReadUIRs:
