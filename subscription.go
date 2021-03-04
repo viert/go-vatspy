@@ -66,11 +66,11 @@ func (s *Subscription) processStatic(data *static.Data) {
 
 		if existing, found := s.state.Countries[country.Prefix]; found {
 			if !country.equals(&existing) {
-				if s.sendUpdate(Update{ObjectModify, &country}) {
+				if s.sendUpdate(Update{ObjectModify, country}) {
 					s.state.Countries[country.Prefix] = country
 				}
 			} else {
-				if s.sendUpdate(Update{ObjectAdd, &country}) {
+				if s.sendUpdate(Update{ObjectAdd, country}) {
 					s.state.Countries[country.Prefix] = country
 				}
 			}
@@ -79,7 +79,7 @@ func (s *Subscription) processStatic(data *static.Data) {
 
 	for _, country := range s.state.Countries {
 		if data.FindCountryByPrefix(country.Prefix) == nil {
-			if s.sendUpdate(Update{ObjectRemove, &country}) {
+			if s.sendUpdate(Update{ObjectRemove, country}) {
 				delete(s.state.Countries, country.Prefix)
 			}
 		}
@@ -99,18 +99,18 @@ func (s *Subscription) processStatic(data *static.Data) {
 			if !airport.equals(&existing) {
 				if airport.IsEmpty() && s.controlledOnly {
 					// This code should never run but just in case.
-					if s.sendUpdate(Update{ObjectRemove, &airport}) {
+					if s.sendUpdate(Update{ObjectRemove, airport}) {
 						delete(s.state.Airports, airport.ICAO)
 					}
 				} else {
-					if s.sendUpdate(Update{ObjectModify, &airport}) {
+					if s.sendUpdate(Update{ObjectModify, airport}) {
 						s.state.Airports[airport.ICAO] = airport
 					}
 				}
 			}
 		} else {
 			if !airport.IsEmpty() || !s.controlledOnly {
-				if s.sendUpdate(Update{ObjectAdd, &airport}) {
+				if s.sendUpdate(Update{ObjectAdd, airport}) {
 					s.state.Airports[airport.ICAO] = airport
 				}
 			}
@@ -119,7 +119,7 @@ func (s *Subscription) processStatic(data *static.Data) {
 
 	for _, airport := range s.state.Airports {
 		if data.FindAirportByICAO(airport.ICAO) == nil {
-			if s.sendUpdate(Update{ObjectRemove, &airport}) {
+			if s.sendUpdate(Update{ObjectRemove, airport}) {
 				delete(s.state.Airports, airport.ICAO)
 			}
 		}
@@ -180,7 +180,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 						airportModified = true
 					}
 				}
-				if airportModified && s.sendUpdate(Update{ObjectModify, &airport}) {
+				if airportModified && s.sendUpdate(Update{ObjectModify, airport}) {
 					s.state.Airports[airport.ICAO] = airport
 				}
 			} else {
@@ -197,7 +197,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 				case 5:
 					airport.Controllers.Approach = &controller
 				}
-				if s.sendUpdate(Update{ObjectModify, &airport}) {
+				if s.sendUpdate(Update{ObjectModify, airport}) {
 					s.state.Airports[airport.ICAO] = airport
 				}
 			}
@@ -268,12 +268,12 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 
 			if existing, found := s.state.Radars[radar.Callsign]; found {
 				if !existing.equals(&radar) {
-					if s.sendUpdate(Update{ObjectModify, &radar}) {
+					if s.sendUpdate(Update{ObjectModify, radar}) {
 						s.state.Radars[radar.Callsign] = radar
 					}
 				}
 			} else {
-				if s.sendUpdate(Update{ObjectAdd, &radar}) {
+				if s.sendUpdate(Update{ObjectAdd, radar}) {
 					s.state.Radars[radar.Callsign] = radar
 				}
 			}
@@ -300,7 +300,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 			existing := airport.Controllers.ATIS
 			if !existing.equals(&atis) {
 				airport.Controllers.ATIS = &atis
-				if s.sendUpdate(Update{ObjectModify, &airport}) {
+				if s.sendUpdate(Update{ObjectModify, airport}) {
 					s.state.Airports[vsAirport.ICAO] = airport
 				}
 			}
@@ -309,7 +309,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 				Airport: *vsAirport,
 			}
 			airport.Controllers.ATIS = &atis
-			if s.sendUpdate(Update{ObjectModify, &airport}) {
+			if s.sendUpdate(Update{ObjectModify, airport}) {
 				s.state.Airports[airport.ICAO] = airport
 			}
 		}
@@ -354,11 +354,11 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 
 		if !current.equals(&airport) {
 			if airport.IsEmpty() && s.controlledOnly {
-				if s.sendUpdate(Update{ObjectRemove, &current}) {
+				if s.sendUpdate(Update{ObjectRemove, current}) {
 					delete(s.state.Airports, key)
 				}
 			} else {
-				if s.sendUpdate(Update{ObjectModify, &airport}) {
+				if s.sendUpdate(Update{ObjectModify, airport}) {
 					s.state.Airports[key] = airport
 				}
 			}
@@ -367,7 +367,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 
 	for callsign, radar := range s.state.Radars {
 		if ctrl := dynamicData.FindController(callsign); ctrl == nil {
-			if s.sendUpdate(Update{ObjectRemove, &radar}) {
+			if s.sendUpdate(Update{ObjectRemove, radar}) {
 				delete(s.state.Radars, callsign)
 			}
 		}
