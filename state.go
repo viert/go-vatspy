@@ -37,10 +37,11 @@ type (
 		static.Country
 	}
 
-	state struct {
-		airports  map[string]Airport
-		countries map[string]Country
-		radars    map[string]Radar
+	// State is a subscription state
+	State struct {
+		Airports  map[string]Airport `json:"airports"`
+		Countries map[string]Country `json:"countries"`
+		Radars    map[string]Radar   `json:"radars"`
 	}
 )
 
@@ -174,10 +175,10 @@ func (a *Airport) listControllers() []*AirportController {
 	}
 }
 
-func newStateData() *state {
-	return &state{
-		airports:  make(map[string]Airport),
-		countries: make(map[string]Country),
-		radars:    make(map[string]Radar),
+func newStateData() *State {
+	return &State{
+		Airports:  make(map[string]Airport),
+		Countries: make(map[string]Country),
+		Radars:    make(map[string]Radar),
 	}
 }

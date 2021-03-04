@@ -45,7 +45,7 @@ type UpdateFilter func(interface{}) bool
 // Use Stop() to unsubscribe
 type Subscription struct {
 	subID          uint64
-	state          *state
+	state          *State
 	updates        chan Update
 	controlledOnly bool
 	filters        []UpdateFilter
@@ -63,23 +63,23 @@ func (s *Subscription) processStatic(data *static.Data) {
 			Country: vsCountry,
 		}
 
-		if existing, found := s.state.countries[country.Prefix]; found {
+		if existing, found := s.state.Countries[country.Prefix]; found {
 			if !country.equals(&existing) {
 				if s.sendUpdate(Update{ObjectModify, &country}) {
-					s.state.countries[country.Prefix] = country
+					s.state.Countries[country.Prefix] = country
 				}
 			} else {
 				if s.sendUpdate(Update{ObjectAdd, &country}) {
-					s.state.countries[country.Prefix] = country
+					s.state.Countries[country.Prefix] = country
 				}
 			}
 		}
 	}
 
-	for _, country := range s.state.countries {
+	for _, country := range s.state.Countries {
 		if data.FindCountryByPrefix(country.Prefix) == nil {
 			if s.sendUpdate(Update{ObjectRemove, &country}) {
-				delete(s.state.countries, country.Prefix)
+				delete(s.state.Countries, country.Prefix)
 			}
 		}
 	}
@@ -90,7 +90,7 @@ func (s *Subscription) processStatic(data *static.Data) {
 			Airport: vsAirport,
 		}
 
-		if existing, found := s.state.airports[airport.ICAO]; found {
+		if existing, found := s.state.Airports[airport.ICAO]; found {
 			airport.Controllers.ATIS = existing.Controllers.ATIS
 			airport.Controllers.Delivery = existing.Controllers.Delivery
 			airport.Controllers.Ground = existing.Controllers.Ground
@@ -99,27 +99,27 @@ func (s *Subscription) processStatic(data *static.Data) {
 				if airport.IsEmpty() && s.controlledOnly {
 					// This code should never run but just in case.
 					if s.sendUpdate(Update{ObjectRemove, &airport}) {
-						delete(s.state.airports, airport.ICAO)
+						delete(s.state.Airports, airport.ICAO)
 					}
 				} else {
 					if s.sendUpdate(Update{ObjectModify, &airport}) {
-						s.state.airports[airport.ICAO] = airport
+						s.state.Airports[airport.ICAO] = airport
 					}
 				}
 			}
 		} else {
 			if !airport.IsEmpty() || !s.controlledOnly {
 				if s.sendUpdate(Update{ObjectAdd, &airport}) {
-					s.state.airports[airport.ICAO] = airport
+					s.state.Airports[airport.ICAO] = airport
 				}
 			}
 		}
 	}
 
-	for _, airport := range s.state.airports {
+	for _, airport := range s.state.Airports {
 		if data.FindAirportByICAO(airport.ICAO) == nil {
 			if s.sendUpdate(Update{ObjectRemove, &airport}) {
-				delete(s.state.airports, airport.ICAO)
+				delete(s.state.Airports, airport.ICAO)
 			}
 		}
 	}
@@ -149,7 +149,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 				continue
 			}
 
-			if airport, found := s.state.airports[vsAirport.ICAO]; found {
+			if airport, found := s.state.Airports[vsAirport.ICAO]; found {
 				var existing *AirportController
 				airportModified := false
 
@@ -180,7 +180,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 					}
 				}
 				if airportModified && s.sendUpdate(Update{ObjectModify, &airport}) {
-					s.state.airports[airport.ICAO] = airport
+					s.state.Airports[airport.ICAO] = airport
 				}
 			} else {
 				airport = Airport{
@@ -197,7 +197,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 					airport.Controllers.Approach = &controller
 				}
 				if s.sendUpdate(Update{ObjectModify, &airport}) {
-					s.state.airports[airport.ICAO] = airport
+					s.state.Airports[airport.ICAO] = airport
 				}
 			}
 		} else if vsController.Facility == 6 {
@@ -217,15 +217,15 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 				Boundaries: fir.Boundaries,
 			}
 
-			if existing, found := s.state.radars[radar.Callsign]; found {
+			if existing, found := s.state.Radars[radar.Callsign]; found {
 				if !existing.equals(&radar) {
 					if s.sendUpdate(Update{ObjectModify, &radar}) {
-						s.state.radars[radar.Callsign] = radar
+						s.state.Radars[radar.Callsign] = radar
 					}
 				}
 			} else {
 				if s.sendUpdate(Update{ObjectAdd, &radar}) {
-					s.state.radars[radar.Callsign] = radar
+					s.state.Radars[radar.Callsign] = radar
 				}
 			}
 		}
@@ -247,12 +247,12 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 			}
 			continue
 		}
-		if airport, found := s.state.airports[vsAirport.ICAO]; found {
+		if airport, found := s.state.Airports[vsAirport.ICAO]; found {
 			existing := airport.Controllers.ATIS
 			if !existing.equals(&atis) {
 				airport.Controllers.ATIS = &atis
 				if s.sendUpdate(Update{ObjectModify, &airport}) {
-					s.state.airports[vsAirport.ICAO] = airport
+					s.state.Airports[vsAirport.ICAO] = airport
 				}
 			}
 		} else {
@@ -261,15 +261,15 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 			}
 			airport.Controllers.ATIS = &atis
 			if s.sendUpdate(Update{ObjectModify, &airport}) {
-				s.state.airports[airport.ICAO] = airport
+				s.state.Airports[airport.ICAO] = airport
 			}
 		}
 	}
 
 	// Removing controllers
-	for key, airport := range s.state.airports {
+	for key, airport := range s.state.Airports {
 		// a readonly copy to keep changed values
-		current := s.state.airports[key]
+		current := s.state.Airports[key]
 
 		var ctrl *AirportController
 		ctrl = airport.Controllers.ATIS
@@ -306,20 +306,20 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 		if !current.equals(&airport) {
 			if airport.IsEmpty() && s.controlledOnly {
 				if s.sendUpdate(Update{ObjectRemove, &current}) {
-					delete(s.state.airports, key)
+					delete(s.state.Airports, key)
 				}
 			} else {
 				if s.sendUpdate(Update{ObjectModify, &airport}) {
-					s.state.airports[key] = airport
+					s.state.Airports[key] = airport
 				}
 			}
 		}
 	}
 
-	for callsign, radar := range s.state.radars {
+	for callsign, radar := range s.state.Radars {
 		if ctrl := dynamicData.FindController(callsign); ctrl == nil {
 			if s.sendUpdate(Update{ObjectRemove, &radar}) {
-				delete(s.state.radars, callsign)
+				delete(s.state.Radars, callsign)
 			}
 		}
 	}
@@ -348,4 +348,9 @@ func (s *Subscription) sendUpdate(update Update) bool {
 // Updates returns a readonly updates channel
 func (s *Subscription) Updates() <-chan Update {
 	return s.updates
+}
+
+// GetState returns the current state
+func (s *Subscription) GetState() *State {
+	return s.state
 }

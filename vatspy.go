@@ -60,10 +60,11 @@ func (p *Provider) fetchDynamic() error {
 		return fmt.Errorf("static data is not available yet")
 	}
 
-	p.dynamicData, err = dynamic.Fetch(dynamic.VatSimJSON3URL)
+	dynamicData, err := dynamic.Fetch(dynamic.VatSimJSON3URL)
 	if err != nil {
 		return err
 	}
+	p.dynamicData = dynamicData
 
 	// safely copy subscriptions
 	subs := make([]*Subscription, 0)
