@@ -375,7 +375,7 @@ func (s *Subscription) processDynamic(dynamicData *dynamic.Data, staticData *sta
 }
 
 func (s *Subscription) sendUpdate(update Update) bool {
-
+	log.Debugf("sending %s %s", update.Type.String(), update.Object)
 	// apply filters before sending anything
 	for _, filter := range s.filters {
 		// if a filter returns false, do not send anything,
